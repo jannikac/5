@@ -53,3 +53,53 @@ Es wird versucht einen nicht-`const` Zeiger auf eine nicht-statische Member Funk
 ## Aufgabe 2
 
 ## Aufgabe 3
+
+### a)
+
+Der Fehler ist, dass ein Memory Leak entsteht. Dieser entsteht, wenn die überprüfung, ob ein Zeiger valide ist fehlschlägt. Wirft der Konstruktor, wird der Destruktor nie aufgerufen und somit wird der Speicher, auf den `assembly_ptr_ ` zeigt nie freigegeben.
+
+#### Alternative 1
+
+Man könnte statt eines nativen C-Zeigers einen Smart Pointer verwenden. Ein Unique Pointer zum Beispiel würde automatisch den Speicher an `assembly_ptr_` freigeben, wenn der Zeiger zerstört wird.
+
+```cpp
+class assembly_container {
+public:
+  assembly_container(const std::vector<part> &parts)
+      : assembly_ptr_(new assembly(parts)) {
+    if (!assembly_ptr_->valid())
+      throw invalid_assembly();
+  };
+  ~assembly_container() {}
+
+private:
+  std::unique_ptr<assembly> assembly_ptr_;
+};
+```
+
+#### Alternative 2
+
+#### Alternative 3
+
+Möchte man das Problem mit nativen C-Zeigern lösen, muss man daran denken den allokierten Speicher an der Stelle des `assembly_ptr_` wieder freizugeben bevor geworfen wird.
+
+```cpp
+class assembly_container {
+public:
+  assembly_container(const std::vector<part> &parts)
+      : assembly_ptr_(new assembly(parts)) {
+    if (!assembly_ptr_->valid()) {
+      delete assembly_ptr_;
+      throw invalid_assembly();
+    }
+  };
+  ~assembly_container() { delete assembly_ptr_; }
+
+private:
+  assembly *assembly_ptr_;
+};
+```
+
+### b)
+
+Es Destruktor darf "nur" keine Ausnahmen werfen, während das Stack Unwinding z.B. durch eine andere Ausnahme oder ein Returns geschieht. In diesem Fall wird sofort `std::terminate` aufgerufen. Der Operator `<<` kann zwar werfen, allerdings könnte man das auch in einen Try-Catch block verpacken. Dieser Block müsste dann die Ausnahme einfach ignorieren (z.B. leerer Catch block). Somit könnten in den meisten Fällen trotzdem Daten in die Logdatei geschrieben werden. Alternativ könnte man im Falle einer Ausnahme im Catch block `std::cout` verwenden, um das Fehlschlagen zu signalisieren.
