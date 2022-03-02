@@ -12,7 +12,7 @@ Textaufgaben befinden sich in: `doku.md` oder `doku.pdf`.
 Repository clonen:
 
 ```bash
-git clone https://github.com/jannikac/4.git
+git clone https://github.com/jannikac/5.git
 ```
 
 Build mit CMake erstellen:
@@ -25,6 +25,8 @@ Erstellte ausführbare Datei befindet sich in: `build/{Repo-Name}`.
 
 ### Markdown Doku
 
+Erstellen mit `pandoc` und Template `Eisvogel`.
+
 ```bash
-markdown-pdf -s ./markdown-pdf/css/pdf.css doku.md
+pandoc doku.md -o doku.pdf --from markdown --template eisvogel --listings
 ```
