@@ -53,8 +53,10 @@ Es wird versucht einen nicht-`const` Zeiger auf eine nicht-statische Member Funk
 ## Aufgabe 2
 
 ### a)
+
 Der Aufruf von `std::terminate()` gilt es im Allgemeinen zu verhindern, da das Programm im Fehlerfall kompromisslos terminiert wird. Mit dem Aufruf wird der Callstack aufgelöst und der Anwendungsspeicher (Heap und Stack) werden geleert. Damit wird debugging unmöglich, da die Fehlerursache nur schwer eingegrenzt werden kann. Dies bedeutet, gehe nach Folgender Faustregel vor:
->Eine Ausnahme wird genau einmal werfen und einmal fangen. Das fangen vom Typ `const&`.
+
+> Eine Ausnahme wird genau einmal werfen und einmal fangen. Das fangen vom Typ `const&`.
 
 Z2 meint ein Programm, dessen Programmablauf kein undefiniertes Verhalten, memory leaks, exception Slicing usw. beinhaltet. Zusammenfassend sich an gewissen best-practices schemes orientiert, sodass keine unerwünschten Seiteneffekte auftreten.
 
@@ -70,9 +72,31 @@ Z2 meint ein Programm, dessen Programmablauf kein undefiniertes Verhalten, memor
 | F8         | Z1       | Wenn Ausnahmeklassen beim Kopieren oder Zuweisen werfen würden, führt dies zu einem `std::terminate()` aufgrund der Ausnahme außerhalb des Benutzercodes. Realisierung mithilfe von shared_ptr möglich.                                                                                                                                              |
 | F9         | Z1/Z2/Z3 | Grund siehe Faustformel F1-F8.                                                                                                                                                                                                                                                                                                                       |
 
-### f)
-Es tritt Object Slicing auf, da im Funktionskopf `made_talk` ein Parameter vom Type `base` entgegengenommen wird. Die "zusätzliche" information der Objektzugörigkeit zur Klasse `derived` geht verloren, sodass die Ausgabe `B` ist. In Zeile 6 wird die Funktion `talk()` implizit aufgerufen, da der eigentliche Objekttyp ein anderer ist. 
+### b)
 
+Wenn -1 zurückgegeben wird, entsteht kein Side-effect. Ausnahmen sind Side-effects, welche den code unter Umständen schwerer zu debuggen machen kann. Wird eine Ausgabe zurückgegeben geworfen, muss der Aufrufer das Ganze in einen Try-Catch block wickeln. Wenn nicht, wird `std::terminate` ausgelöst, was undefiniertes Verhalten erzeugen kann.
+
+Bei dem Rückgabewert -1 muss man "wissen", dass -1 den Fehlerfall darstellt. Das kann mithilfe einer Konstante z.B. `NOT_FOUND` o.Ä. realisiert werden. Auch ist es recht intransparent, wenn der Wert nicht gefunden wird.
+
+Ich würde hier eine Ausnahme verwenden, da durch Prinzipien der Ausnahmesicherheit sichergestellt werden kann, dass nach außen hin sichtbar ist, dass eventuell eine Ausnahme geworfen wird.
+
+### c)
+
+Siehe `src/c_exception.cpp`.
+
+### d)
+
+Siehe `src/string.cpp`.
+
+### e)
+
+Siehe `src/main.cpp` Funktion `string_test()`.
+
+Ein Problem ist, wenn die Daten in den Catch-Blöcken voneinander abhängen man viele große Testblöcke hat. Auch ist das ständige Try-Catchen eher boilerplatelastig. Auch besteht das Problem, dass zum Testen des Codes die Ausnahme forciert werden muss. Bei malloc bzw. realloc konnte das mit `#define malloc(...) NULL` realisiert werden.
+
+### f)
+
+Es tritt Object Slicing auf, da im Funktionskopf `made_talk` ein Parameter vom Type `base` entgegengenommen wird. Die "zusätzliche" information der Objektzugörigkeit zur Klasse `derived` geht verloren, sodass die Ausgabe `B` ist. In Zeile 6 wird die Funktion `talk()` implizit aufgerufen, da der eigentliche Objekttyp ein anderer ist.
 
 ## Aufgabe 3
 
