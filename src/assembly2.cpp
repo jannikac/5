@@ -1,4 +1,5 @@
 #include <exception>
+#include <memory>
 #include <vector>
 class part {};
 class assembly {
@@ -16,8 +17,8 @@ public:
     if (!assembly_ptr_->valid())
       throw invalid_assembly();
   };
-  ~assembly_container() { delete assembly_ptr_; }
+  ~assembly_container() {}
 
 private:
-  assembly *assembly_ptr_;
+  std::unique_ptr<assembly> assembly_ptr_;
 };

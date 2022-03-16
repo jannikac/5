@@ -1,5 +1,4 @@
 #include <exception>
-#include <memory>
 #include <vector>
 class part {};
 class assembly {
@@ -12,13 +11,12 @@ class invalid_assembly : public std::exception {};
 
 class assembly_container {
 public:
-  assembly_container(const std::vector<part> &parts)
-      : assembly_ptr_(new assembly(parts)) {
-    if (!assembly_ptr_->valid())
+  assembly_container(const std::vector<part> &parts) : assem(assembly(parts)) {
+    if (!assem.valid())
       throw invalid_assembly();
   };
   ~assembly_container() {}
 
 private:
-  std::unique_ptr<assembly> assembly_ptr_;
+  assembly assem;
 };

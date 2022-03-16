@@ -1,3 +1,9 @@
+---
+title: "Aufgaben 5 - Ausnahmebehandlung"
+author: [Jannik Steinbach, Johannes Städter]
+date: "16. 03. 2022"
+...
+
 # Aufgaben 5 - Ausnahmebehandlung
 
 ## Aufgabe 1
@@ -54,23 +60,23 @@ Es wird versucht einen nicht-`const` Zeiger auf eine nicht-statische Member Funk
 
 ### a)
 
-Der Aufruf von `std::terminate()` gilt es im Allgemeinen zu verhindern, da das Programm im Fehlerfall kompromisslos terminiert wird. Mit dem Aufruf wird der Callstack aufgelöst und der Anwendungsspeicher (Heap und Stack) werden geleert. Damit wird debugging unmöglich, da die Fehlerursache nur schwer eingegrenzt werden kann. Dies bedeutet, gehe nach Folgender Faustregel vor:
+Der Aufruf von `std::terminate()` gilt es im Allgemeinen zu verhindern, da das Programm im Fehlerfall kompromisslos terminiert wird. Mit dem Aufruf wird der Callstack aufgelöst und der Anwendungsspeicher (Heap und Stack) werden geleert. Damit wird debugging unmöglich, da die Fehlerursache nur schwer eingegrenzt werden kann. Dies bedeutet, gehe nach folgender Faustregel vor:
 
 > Eine Ausnahme wird genau einmal werfen und einmal fangen. Das fangen vom Typ `const&`.
 
 Z2 meint ein Programm, dessen Programmablauf kein undefiniertes Verhalten, memory leaks, exception Slicing usw. beinhaltet. Zusammenfassend sich an gewissen best-practices schemes orientiert, sodass keine unerwünschten Seiteneffekte auftreten.
 
-| Faustregel | Ziel     | Begründung                                                                                                                                                                                                                                                                                                                                           |
-| ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F1         | Z2       | Exception Slicing führt dazu, dass die abgeleitete Klasse aus `std::exception` abgeschnitten wird. Damit ist in der Exception ein Informationsverlust.                                                                                                                                                                                               |
-| F2         | Z2/Z3    | Umständlicher Code, der methodenspezifische detailierte Exceptions ausgibt. Führt bei geschachtelten Fkt.-Aufrufen zu Umverpacken, da die geschachtelte Fkt. eine Exception wirft, die von der übergordneten Funktion abgefangen wird und in eine neue spezifische Exception eingebettet wird. Möglicher Informationsverlust und Fehleranfälligkeit. |
-| F3         | Z3       | Allgemeine Ausnahmeklassen für möglichst große Wiederverwendung in verschiedenen Programmmodulen und übersichtlichen Code. Beispielsweise `out-of-memory` Exception anstelle methodenspezifscher Ausnahme.                                                                                                                                           |
-| F4         | Z1/Z2/Z3 | `std::terminate()` wird aufgerufen, falls geworfene Ausnahme nicht der Ausnahmespezifikation entspricht -> beliebige Ausnahme bei Weglassen des Ausnahmespezifizierers möglich.                                                                                                                                                                      |
-| F5         | Z1/Z2    | Ungültiges Objekt kann nicht kontruiert werden, somit automatische Freigabe des Objektspeichers (Stack oder Heap)                                                                                                                                                                                                                                    |
-| F6         | Z2       | Automatische Zeiger sind notwendig, um geschachtelte `new` Aufrufe abzusichern. Im Fehlerfall wird geschachteltes `new` Object bei vollständiger Kontruktion nicht zerstört -> memory leak. Automatischer Zeiger kümmert sich bei Exception um die Zerstörung des geschachtelten `new` Objekts.                                                      |
-| F7         | Z1/Z2/Z3 | Wenn ein Stack Unwinding aufgrund ener Ausnahme oder return auftritt, würde bei einem Destruktoraufruf mit einer Exception zu einer neuen Ausnahme außerhalb des Benutzercodes erfolgen und ein kompromissloses `std::terminate()` wird aufgerufen. `throw → ~bug_thread() → throw → std::terminate()`                                               |
-| F8         | Z1       | Wenn Ausnahmeklassen beim Kopieren oder Zuweisen werfen würden, führt dies zu einem `std::terminate()` aufgrund der Ausnahme außerhalb des Benutzercodes. Realisierung mithilfe von shared_ptr möglich.                                                                                                                                              |
-| F9         | Z1/Z2/Z3 | Grund siehe Faustformel F1-F8.                                                                                                                                                                                                                                                                                                                       |
+| Faustregel | Ziel     | Begründung                                                                                                                                                                                                                                                                                                                                             |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| F1         | Z2       | Exception Slicing führt dazu, dass die abgeleitete Klasse aus `std::exception` abgeschnitten wird. Damit ist in der Exception ein Informationsverlust.                                                                                                                                                                                                 |
+| F2         | Z2/Z3    | Umständlicher Code, der methodenspezifische detaillierte Exceptions ausgibt. Führt bei geschachtelten Fkt.-Aufrufen zu Umverpacken, da die geschachtelte Fkt. eine Exception wirft, die von der übergeordneten Funktion abgefangen wird und in eine neue spezifische Exception eingebettet wird. Möglicher Informationsverlust und Fehleranfälligkeit. |
+| F3         | Z3       | Allgemeine Ausnahmeklassen für möglichst große Wiederverwendung in verschiedenen Programmmodulen und übersichtlichen Code. Beispielsweise `out-of-memory` Exception anstelle methodenspezifscher Ausnahme.                                                                                                                                             |
+| F4         | Z1/Z2/Z3 | `std::terminate()` wird aufgerufen, falls geworfene Ausnahme nicht der Ausnahmespezifikation entspricht -> beliebige Ausnahme bei Weglassen des Ausnahmespezifizierers möglich.                                                                                                                                                                        |
+| F5         | Z1/Z2    | Ungültiges Objekt kann nicht kontruiert werden, somit automatische Freigabe des Objektspeichers (Stack oder Heap)                                                                                                                                                                                                                                      |
+| F6         | Z2       | Automatische Zeiger sind notwendig, um geschachtelte `new` Aufrufe abzusichern. Im Fehlerfall wird geschachteltes `new` Object bei vollständiger Kontruktion nicht zerstört -> memory leak. Automatischer Zeiger kümmert sich bei Exception um die Zerstörung des geschachtelten `new` Objekts.                                                        |
+| F7         | Z1/Z2/Z3 | Wenn ein Stack Unwinding aufgrund ener Ausnahme oder return auftritt, würde bei einem Destruktoraufruf mit einer Exception zu einer neuen Ausnahme außerhalb des Benutzercodes erfolgen und ein kompromissloses `std::terminate()` wird aufgerufen. `throw -> ~bug_thread() -> throw -> std::terminate()`                                              |
+| F8         | Z1       | Wenn Ausnahmeklassen beim Kopieren oder Zuweisen werfen würden, führt dies zu einem `std::terminate()` aufgrund der Ausnahme außerhalb des Benutzercodes. Realisierung mithilfe von shared_ptr möglich.                                                                                                                                                |
+| F9         | Z1/Z2/Z3 | Grund siehe Faustformel F1-F8.                                                                                                                                                                                                                                                                                                                         |
 
 ### b)
 
@@ -106,6 +112,24 @@ Der Fehler ist, dass ein Memory Leak entsteht. Dieser entsteht, wenn die überpr
 
 #### Alternative 1
 
+In dieser Alternative wird eine `assembly` auf dem Stack erstellt und in der klasse gespeichert. Somit spart man sich die Heap-Zuweisung und eventuelle Fehler mit Zeigern. Da das Objekt auf dem Stack liegt, wird es automatisch gelöscht, sobald es out-of-scope ist.
+
+```cpp
+class assembly_container {
+public:
+  assembly_container(const std::vector<part> &parts) : assem(assembly(parts)) {
+    if (!assem.valid())
+      throw invalid_assembly();
+  };
+  ~assembly_container() {}
+
+private:
+  assembly assem;
+};
+```
+
+#### Alternative 2
+
 Man könnte statt eines nativen C-Zeigers einen Smart Pointer verwenden. Ein Unique Pointer zum Beispiel würde automatisch den Speicher an `assembly_ptr_` freigeben, wenn der Zeiger zerstört wird.
 
 ```cpp
@@ -122,8 +146,6 @@ private:
   std::unique_ptr<assembly> assembly_ptr_;
 };
 ```
-
-#### Alternative 2
 
 #### Alternative 3
 
